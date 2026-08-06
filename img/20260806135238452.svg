@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 440" width="100%" role="img">
+  <style>
+    svg text { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+    :root {
+      --color-text-primary: #1a1a1a;
+      --color-text-secondary: #5f5e5a;
+      --color-border-primary: #888780;
+      --color-border-tertiary: #d3d1c7;
+    }
+    .th { font-size: 13px; font-weight: 500; fill: var(--color-text-primary); }
+    .ts { font-size: 11px; font-weight: 400; fill: var(--color-text-secondary); }
+    .t  { font-size: 14px; font-weight: 400; fill: var(--color-text-primary); }
+    .c-purple > rect { fill: #EEEDFE; stroke: #534AB7; }
+    .c-teal   > rect { fill: #E1F5EE; stroke: #0F6E56; }
+    .c-coral  > rect { fill: #FAECE7; stroke: #993C1D; }
+    .c-amber  > rect { fill: #FAEEDA; stroke: #854F0B; }
+    .c-blue   > rect { fill: #E6F1FB; stroke: #185FA5; }
+    .c-gray   > rect { fill: #F1EFE8; stroke: #444441; }
+  </style>
+  <title>后端异步架构：多 Worker 与 Redis Pub/Sub 中继</title>
+  <desc>展示客户端经 Nginx 连接多个无状态 Worker，Worker 通过 Redis Pub/Sub 中转流式事件，直连 PostgreSQL 与 vLLM</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <text x="340" y="28" text-anchor="middle" font-size="14" font-weight="500" fill="var(--color-text-primary)">后端异步架构 — 多 Worker + Redis Pub/Sub 中继</text>
+
+  <!-- Client -->
+  <g class="node c-blue">
+    <rect x="270" y="45" width="140" height="44" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="67" text-anchor="middle" dominant-baseline="central" font-size="13">客户端 (WebSocket)</text>
+  </g>
+  <path d="M340 89 L340 115" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Nginx -->
+  <g class="node c-gray">
+    <rect x="270" y="120" width="140" height="44" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="142" text-anchor="middle" dominant-baseline="central" font-size="13">Nginx 反向代理</text>
+  </g>
+
+  <!-- Nginx to workers -->
+  <path d="M310 164 L120 195" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M340 164 L340 195" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M370 164 L560 195" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Workers -->
+  <g class="node c-purple">
+    <rect x="40" y="195" width="160" height="60" rx="8" stroke-width="0.5"/>
+    <text class="th" x="120" y="215" text-anchor="middle" dominant-baseline="central" font-size="13">Worker A</text>
+    <text class="ts" x="120" y="233" text-anchor="middle" dominant-baseline="central" font-size="11">Runtime + WS Handler</text>
+  </g>
+  <g class="node c-purple">
+    <rect x="260" y="195" width="160" height="60" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="215" text-anchor="middle" dominant-baseline="central" font-size="13">Worker B</text>
+    <text class="ts" x="340" y="233" text-anchor="middle" dominant-baseline="central" font-size="11">Runtime + WS Handler</text>
+  </g>
+  <g class="node c-purple">
+    <rect x="480" y="195" width="160" height="60" rx="8" stroke-width="0.5"/>
+    <text class="th" x="560" y="215" text-anchor="middle" dominant-baseline="central" font-size="13">Worker C</text>
+    <text class="ts" x="560" y="233" text-anchor="middle" dominant-baseline="central" font-size="11">Runtime + WS Handler</text>
+  </g>
+
+  <!-- Redis Pub/Sub bus -->
+  <g class="node c-teal">
+    <rect x="210" y="295" width="260" height="50" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="315" text-anchor="middle" dominant-baseline="central" font-size="13">Redis Pub/Sub 事件总线</text>
+    <text class="ts" x="340" y="331" text-anchor="middle" dominant-baseline="central" font-size="11">instance:{id}:events 频道</text>
+  </g>
+
+  <!-- Workers to Redis (publish) -->
+  <path d="M120 255 L300 295" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <path d="M340 255 L340 295" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <path d="M560 255 L380 295" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <text x="205" y="278" text-anchor="middle" font-size="10" fill="#0F6E56">publish</text>
+
+  <!-- PostgreSQL + vLLM -->
+  <g class="node c-amber">
+    <rect x="40" y="385" width="180" height="44" rx="8" stroke-width="0.5"/>
+    <text class="th" x="130" y="407" text-anchor="middle" dominant-baseline="central" font-size="13">PostgreSQL</text>
+  </g>
+  <g class="node c-coral">
+    <rect x="460" y="385" width="180" height="44" rx="8" stroke-width="0.5"/>
+    <text class="th" x="550" y="407" text-anchor="middle" dominant-baseline="central" font-size="13">vLLM 推理服务</text>
+  </g>
+
+  <!-- Workers to PG and vLLM (direct) -->
+  <path d="M120 255 L130 385" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M560 255 L550 385" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="95" y="330" text-anchor="middle" font-size="10" fill="var(--color-text-secondary)">直连</text>
+  <text x="590" y="330" text-anchor="middle" font-size="10" fill="var(--color-text-secondary)">直连</text>
+
+  <!-- Design notes -->
+  <g transform="translate(40, 435)">
+    <text x="0" y="0" font-size="11" fill="var(--color-text-secondary)">Runtime 无状态：上下文在 Redis(活跃窗口)+PostgreSQL(完整 messages)，状态在 agent_instances 表。WS 与执行解耦，Redis 只做事件总线。</text>
+  </g>
+</svg>
