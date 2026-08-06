@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 380" width="100%" role="img">
+  <style>
+    svg text { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+    :root {
+      --color-text-primary: #1a1a1a;
+      --color-text-secondary: #5f5e5a;
+      --color-border-primary: #888780;
+      --color-border-tertiary: #d3d1c7;
+    }
+    .th { font-size: 13px; font-weight: 500; fill: var(--color-text-primary); }
+    .ts { font-size: 11px; font-weight: 400; fill: var(--color-text-secondary); }
+    .t  { font-size: 14px; font-weight: 400; fill: var(--color-text-primary); }
+    .c-purple > rect { fill: #EEEDFE; stroke: #534AB7; }
+    .c-teal   > rect { fill: #E1F5EE; stroke: #0F6E56; }
+    .c-coral  > rect { fill: #FAECE7; stroke: #993C1D; }
+    .c-amber  > rect { fill: #FAEEDA; stroke: #854F0B; }
+    .c-blue   > rect { fill: #E6F1FB; stroke: #185FA5; }
+    .c-gray   > rect { fill: #F1EFE8; stroke: #444441; }
+  </style>
+  <title>Runtime 引擎：Agent 循环与流式</title>
+  <desc>展示单个 Agent 实例的 asyncio 循环：LLM 流式调用、token 实时推送、工具调用与结果回灌</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <text x="340" y="28" text-anchor="middle" font-size="14" font-weight="500" fill="var(--color-text-primary)">Runtime 引擎 — Agent 循环与流式</text>
+
+  <!-- User message -->
+  <g class="node c-blue">
+    <rect x="270" y="45" width="140" height="44" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="67" text-anchor="middle" dominant-baseline="central" font-size="13">用户消息</text>
+  </g>
+  <path d="M340 89 L340 115" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Agent loop box -->
+  <g class="node c-purple">
+    <rect x="170" y="120" width="340" height="160" rx="12" stroke-width="0.5"/>
+    <text class="th" x="340" y="140" text-anchor="middle" dominant-baseline="central" font-size="13">Agent 循环 (asyncio.Task)</text>
+    <rect x="200" y="155" width="130" height="36" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text class="ts" x="265" y="173" text-anchor="middle" dominant-baseline="central" font-size="11">① LLM 流式调用</text>
+    <rect x="350" y="155" width="130" height="36" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text class="ts" x="415" y="173" text-anchor="middle" dominant-baseline="central" font-size="11">② 推送 token</text>
+    <rect x="350" y="205" width="130" height="36" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text class="ts" x="415" y="223" text-anchor="middle" dominant-baseline="central" font-size="11">③ 需工具?</text>
+    <rect x="200" y="205" width="130" height="36" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text class="ts" x="265" y="223" text-anchor="middle" dominant-baseline="central" font-size="11">④ 工具调用</text>
+  </g>
+
+  <!-- Return arrow: tool result back to LLM -->
+  <path d="M265 241 L265 262 L200 262 L200 191" fill="none" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="150" y="235" text-anchor="middle" font-size="10" fill="#534AB7">结果回灌</text>
+
+  <!-- token to WS -->
+  <path d="M415 173 L520 173 L520 100" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <text x="470" y="138" text-anchor="middle" font-size="10" fill="#0F6E56">stream_token</text>
+
+  <!-- WS client -->
+  <g class="node c-teal">
+    <rect x="505" y="60" width="150" height="40" rx="8" stroke-width="0.5"/>
+    <text class="th" x="580" y="80" text-anchor="middle" dominant-baseline="central" font-size="12">WebSocket → 客户端</text>
+  </g>
+
+  <!-- tool to MCP/Skill -->
+  <path d="M265 241 L130 241 L130 295" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <g class="node c-amber">
+    <rect x="40" y="295" width="180" height="40" rx="8" stroke-width="0.5"/>
+    <text class="th" x="130" y="315" text-anchor="middle" dominant-baseline="central" font-size="12">MCP / Skill 执行</text>
+  </g>
+
+  <!-- Trace -->
+  <path d="M340 280 L340 320" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <g class="node c-gray">
+    <rect x="250" y="320" width="180" height="40" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="340" text-anchor="middle" dominant-baseline="central" font-size="12">Trace 记录 (每次步骤)</text>
+  </g>
+
+  <!-- end: no tool needed -->
+  <path d="M415 241 L560 241" fill="none" stroke="var(--color-border-primary)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="490" y="231" text-anchor="middle" font-size="10" fill="var(--color-text-secondary)">否</text>
+  <g class="node c-teal">
+    <rect x="505" y="221" width="150" height="40" rx="8" stroke-width="0.5"/>
+    <text class="th" x="580" y="241" text-anchor="middle" dominant-baseline="central" font-size="12">完成 → 写 messages</text>
+  </g>
+</svg>
